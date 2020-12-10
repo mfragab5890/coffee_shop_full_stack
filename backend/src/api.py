@@ -11,26 +11,7 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-'''
-@TODO uncomment the following line to initialize the datbase
-!! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
-!! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-'''
 # db_drop_and_create_all()
-'''drink = Drink.query.get(6)
-Drink.delete(drink)'''
-"""title_n = "Frappuccino"
-recipe_n = json.dumps([
-    {"color": "brown", "name": "coffee", "parts": 2},
-    {"color": "white", "name": "milk", "parts": 1},
-    {"color": "yellow", "name": "cream", "parts": 1},
-    {"color": "yellow", "name": "flavor", "parts": 3}
-])
-drink_n = Drink(
-    title=title_n,
-    recipe=recipe_n
-)
-drink_n.insert()"""
 
 ## ROUTES
 
