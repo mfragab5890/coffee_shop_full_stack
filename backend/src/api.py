@@ -11,6 +11,7 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
+
 # db_drop_and_create_all()
 
 ## ROUTES
@@ -27,7 +28,7 @@ def get_drinks_brief():
 
 
 @app.route('/drinks-detail', methods=[ 'GET' ])
-# @requires_auth(permission='get:drinks-detail')
+@requires_auth(permission='get:drinks-detail')
 def get_drinks_details():
     all_drinks = Drink.query.order_by('id').all()
     drinks = [ drink.long() for drink in all_drinks ]
@@ -39,7 +40,7 @@ def get_drinks_details():
 
 
 @app.route('/drinks', methods=[ 'POST' ])
-# @requires_auth(permission='post:drinks')
+@requires_auth(permission='post:drinks')
 def add_new_drink():
     body = request.get_json()
 
@@ -71,7 +72,7 @@ def add_new_drink():
 
 
 @app.route('/drinks/<int:drink_id>', methods=[ 'PATCH' ])
-# @requires_auth(permission='patch:drinks')
+@requires_auth(permission='patch:drinks')
 def update_drink_details(drink_id):
     body = request.get_json()
     drink = Drink.query.filter_by(id=drink_id).one_or_none()
@@ -98,7 +99,7 @@ def update_drink_details(drink_id):
 
 
 @app.route('/drinks/<int:drink_id>', methods=[ 'DELETE' ])
-# @requires_auth(permission='delete:drinks')
+@requires_auth(permission='delete:drinks')
 def delete_user_drink(drink_id):
     drink = Drink.query.get(drink_id)
     if drink:
@@ -134,6 +135,8 @@ def unprocessable(error):
         "error": 404,
         "message": "Not-Found"
     }), 404
+
+
 @app.errorhandler(400)
 def unprocessable(error):
     return jsonify({
