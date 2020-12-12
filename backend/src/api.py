@@ -29,7 +29,7 @@ def get_drinks_brief():
 
 @app.route('/drinks-detail', methods=[ 'GET' ])
 @requires_auth(permission='get:drinks-detail')
-def get_drinks_details():
+def get_drinks_details(permission):
     all_drinks = Drink.query.order_by('id').all()
     drinks = [ drink.long() for drink in all_drinks ]
 
@@ -41,7 +41,7 @@ def get_drinks_details():
 
 @app.route('/drinks', methods=[ 'POST' ])
 @requires_auth(permission='post:drinks')
-def add_new_drink():
+def add_new_drink(permission):
     body = request.get_json()
 
     title = body.get('title', None)
@@ -73,25 +73,24 @@ def add_new_drink():
 
 @app.route('/drinks/<int:drink_id>', methods=[ 'PATCH' ])
 @requires_auth(permission='patch:drinks')
-def update_drink_details(drink_id):
+def update_drink_details(permession, drink_id):
     body = request.get_json()
     drink = Drink.query.filter_by(id=drink_id).one_or_none()
     if drink:
-        if 'title' in body:
+        if 'title' in body or 'recipe' in body:
             if 'recipe' in body:
-                drink.title = body.get('title')
                 drink.recipe = json.dumps(body.get('recipe'))
-                drink.update()
-                new_drink = Drink.query.get(drink_id)
-                drink = new_drink.long()
-                return jsonify({
-                    'success': True,
-                    'drinks': drink
+            if 'title' in body:
+                drink.title = body.get('title')
+            drink.update()
+            new_drink = Drink.query.get(drink_id)
+            drink = new_drink.long()
+            return jsonify({
+                'success': True,
+                'drinks': drink
 
-                })
+            })
 
-            else:
-                abort(400)
         else:
             abort(400)
     else:
@@ -100,7 +99,7 @@ def update_drink_details(drink_id):
 
 @app.route('/drinks/<int:drink_id>', methods=[ 'DELETE' ])
 @requires_auth(permission='delete:drinks')
-def delete_user_drink(drink_id):
+def delete_user_drink(permession, drink_id):
     drink = Drink.query.get(drink_id)
     if drink:
         drink.delete()
