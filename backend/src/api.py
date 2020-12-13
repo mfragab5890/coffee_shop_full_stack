@@ -3,7 +3,6 @@ from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
-
 from src.database.models import db_drop_and_create_all, setup_db, Drink
 from src.auth.auth import AuthError, requires_auth
 
@@ -45,8 +44,7 @@ def add_new_drink(permission):
     body = request.get_json()
 
     title = body.get('title', None)
-    recipe = json.dumps(body.get('recipe', None))
-
+    recipe = body.get('recipe', None)
     try:
         if title is None or recipe is None:
 
@@ -54,7 +52,7 @@ def add_new_drink(permission):
         else:
             drink = Drink(
                 title=title,
-                recipe=recipe
+                recipe=recipe if type(recipe) == str else json.dumps(recipe)
             )
             drink.insert()
 
@@ -64,7 +62,7 @@ def add_new_drink(permission):
 
     finally:
         new_drink = Drink.query.filter(Drink.title == title).first()
-        drink = new_drink.long()
+        drink = [new_drink.long()]
         return jsonify({
             'success': True,
             'drinks': drink
@@ -79,12 +77,13 @@ def update_drink_details(permession, drink_id):
     if drink:
         if 'title' in body or 'recipe' in body:
             if 'recipe' in body:
-                drink.recipe = json.dumps(body.get('recipe'))
+                recipe = body.get('recipe')
+                drink.recipe = recipe if type(recipe) == str else json.dumps(recipe)
             if 'title' in body:
                 drink.title = body.get('title')
             drink.update()
             new_drink = Drink.query.get(drink_id)
-            drink = new_drink.long()
+            drink = [new_drink.long()]
             return jsonify({
                 'success': True,
                 'drinks': drink
@@ -152,7 +151,7 @@ def not_good_request(error):
 
 
 @app.errorhandler(500)
-def not_found(error):
+def server_error(error):
     return jsonify({
         "success": False,
         "error": 500,
@@ -167,7 +166,7 @@ def not_found(error):
 
 
 @app.errorhandler(401)
-def not_found(error):
+def Unauthorized(error):
     return jsonify({
         "success": False,
         "error": 401,
@@ -176,9 +175,19 @@ def not_found(error):
 
 
 @app.errorhandler(403)
-def not_found(error):
+def forbidden_access(error):
     return jsonify({
         "success": False,
         "error": 403,
         "message": 'Access to the requested resource is forbidden. '
     }), 403
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    """
+    handling authorization errors
+    """
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
